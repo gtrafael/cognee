@@ -1,5 +1,7 @@
 # Local UI login works from every browser host
 
+[Leer en español](LOCAL_UI_LOGIN_FIX_es.md)
+
 This branch applies the fix from [issue #4582](https://github.com/topoteretes/cognee/issues/4582) and [PR #4627](https://github.com/topoteretes/cognee/pull/4627) to Cognee v1.5.3. The local UI now sends API requests to the same hostname used to open the UI, so authentication works through `localhost`, `127.0.0.1`, and LAN hostnames or addresses.
 
 ## What failed and why
