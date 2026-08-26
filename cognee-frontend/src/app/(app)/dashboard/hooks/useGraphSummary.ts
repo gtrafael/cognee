@@ -101,7 +101,7 @@ export function useGraphSummary(
 
     const justCompleted = runs.some((r) => {
       const key = r.pipeline_run_id || r.id;
-      return r.status.includes("COMPLETED") && !prev.get(key)?.includes("COMPLETED");
+      return (r.status ?? "").includes("COMPLETED") && !prev.get(key)?.includes("COMPLETED");
     });
     if (!justCompleted) return;
 

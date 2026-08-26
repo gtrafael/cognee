@@ -20,12 +20,13 @@ export function timeAgo(dateStr: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-function pipelineLabel(name: string): string {
-  if (name.includes("cognify")) return "cognee.cognify";
-  if (name.includes("add")) return "cognee.add";
-  if (name.includes("search")) return "cognee.search";
-  if (name.includes("recall")) return "cognee.recall";
-  return name;
+function pipelineLabel(name: string | null | undefined): string {
+  const label = name ?? "";
+  if (label.includes("cognify")) return "cognee.cognify";
+  if (label.includes("add")) return "cognee.add";
+  if (label.includes("search")) return "cognee.search";
+  if (label.includes("recall")) return "cognee.recall";
+  return label;
 }
 
 export function ownerDisplayName(email: string | null): string {
@@ -310,7 +311,7 @@ export function AgentActivityTerminal({
   // Items without timestamps sort to the bottom (treated as newest) rather
   // than being dropped or pinned to 1970.
   for (const r of runs) {
-    const pipelineName = r.pipeline_name.toLowerCase();
+    const pipelineName = (r.pipeline_name ?? "").toLowerCase();
     if (!pipelineName.includes("search") && !pipelineName.includes("recall")) continue;
     allEvents.push({ kind: "run", r, ts: r.created_at ? new Date(r.created_at).getTime() : Number.MAX_SAFE_INTEGER });
   }
@@ -391,7 +392,7 @@ export function AgentActivityTerminal({
       return ev.kind === "agentQuery";
     }
     if (termFilter === "errors") {
-      if (ev.kind === "run") return ev.r.status.includes("ERRORED");
+      if (ev.kind === "run") return (ev.r.status ?? "").includes("ERRORED");
       if (ev.kind === "session") return ev.s.effective_status === "failed" || ev.s.error_count > 0;
       return false;
     }
@@ -805,8 +806,9 @@ export function AgentActivityTerminal({
               // ── Operational pipeline run: a compact, non-expandable marker ──
               if (ev.kind === "run") {
                 const r = ev.r;
-                const isError = r.status.includes("ERRORED");
-                const isRunning = r.status.includes("STARTED") || r.status.includes("INITIATED");
+                const statusText = r.status ?? "";
+                const isError = statusText.includes("ERRORED");
+                const isRunning = statusText.includes("STARTED") || statusText.includes("INITIATED");
                 const outcome: Outcome = isRunning ? "running" : isError ? "error" : "done";
                 const label = pipelineLabel(r.pipeline_name);
                 const actor = ownerDisplayName(r.owner_email);
