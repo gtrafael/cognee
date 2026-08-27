@@ -26,8 +26,8 @@ def test_generate_graph_prompt_requests_concrete_edge_descriptions():
     prompt_path = Path(__file__).parents[3] / "infrastructure/llm/prompts/generate_graph_prompt.txt"
     prompt = prompt_path.read_text()
 
-    assert "Every edge should include a description" in prompt
-    assert "stay dry and efficient" in prompt
-    assert "Alice works at Acme as a platform engineer on the search team." in prompt
-    assert "Do not add outside knowledge." in prompt
-    assert "This edge describes an employment relationship." in prompt
+    assert "Cada arista debe incluir una descripción" in prompt
+    assert "ser concisa y eficiente" in prompt
+    assert "Alice trabaja en Acme como ingeniera de plataforma en el equipo de búsqueda." in prompt
+    assert "No añadas conocimiento externo." in prompt
+    assert "Esta arista describe una relación laboral." in prompt

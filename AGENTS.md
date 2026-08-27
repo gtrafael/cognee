@@ -170,7 +170,7 @@ This fork extends upstream cognee with deployment-specific customizations.
 ### Branches
 
 - **`fix/v1.5.3-local-api-host`** — technical fixes on top of upstream (null guards, host resolution, etc.)
-- **`feat/summarize-es`** — **deploy branch**: same as `fix/` plus a Spanish summarization prompt at `cognee/infrastructure/llm/prompts/summarize_content.txt`.
+- **`feat/summarize-es`** — **deploy branch**: same as `fix/` plus Spanish summarization and graph-generation prompts under `cognee/infrastructure/llm/prompts/`.
 
 **Always deploy from `feat/summarize-es`** unless explicitly told otherwise. The sibling repo `gtrafael/cognee-deployment` contains the docker-compose stack and `.env`.
 
