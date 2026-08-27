@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { notifications } from "@mantine/notifications";
 import { trackEvent } from "@/modules/analytics";
@@ -33,6 +33,11 @@ export default function OverviewPage(): React.ReactElement {
   const { agents, datasets, selectedDataset, selectedAgent, loading: filterLoading } = useFilter();
   const router = useRouter();
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [greeting, setGreeting] = useState("Welcome");
+
+  useEffect(() => {
+    setGreeting(greetingForTime());
+  }, []);
 
   const awaitingDataset = useAwaitingDataset();
   const workspaceReady = !!cogniInstance && tenantReady && !awaitingDataset;
@@ -130,7 +135,7 @@ export default function OverviewPage(): React.ReactElement {
         {/* Greeting */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: "#EDECEA", letterSpacing: "-0.02em", lineHeight: "32px" }}>
-            {greetingForTime()}{selectedAgent ? `, ${ownerDisplayName(selectedAgent.email)}` : ""}
+            {greeting}{selectedAgent ? `, ${ownerDisplayName(selectedAgent.email)}` : ""}
           </h1>
           {selectedAgent && (
             <span style={{ background: "var(--color-cognee-selected)", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, color: "var(--color-cognee-purple)" }}>
