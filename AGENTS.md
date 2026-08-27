@@ -162,3 +162,29 @@ MCP server and Frontend:
 ## CI Mirrors Local Commands
 
 Our GitHub Actions run the same ruff checks and pytest suites shown above (`.github/workflows/basic_tests.yml` and related workflows). Use the commands in this document locally to minimize CI surprises.
+
+## About This Fork (gtrafael/cognee)
+
+This fork extends upstream cognee with deployment-specific customizations.
+
+### Branches
+
+- **`fix/v1.5.3-local-api-host`** — technical fixes on top of upstream (null guards, host resolution, etc.)
+- **`feat/summarize-es`** — **deploy branch**: same as `fix/` plus a Spanish summarization prompt at `cognee/infrastructure/llm/prompts/summarize_content.txt`.
+
+**Always deploy from `feat/summarize-es`** unless explicitly told otherwise. The sibling repo `gtrafael/cognee-deployment` contains the docker-compose stack and `.env`.
+
+### Branch strategy
+
+New fixes land first on `fix/v1.5.3-local-api-host`, then are squashed into `feat/summarize-es`. The feature branch is intentionally kept with a single squashed commit per propagation.
+
+**IMPORTANT**: every time you propagate changes from `fix/` into `feat/summarize-es` (or squash upstream work), **notify the user** before and confirm there are no pending changes on `feat/` that would be lost. Then apply pending changes first, squash, and inform the user again.
+
+### Related repositories
+
+- `gtrafael/cognee-deployment` — Docker Compose stack, `.env`, and deployment scripts (see its README for the branch strategy and deployment steps).
+
+### Deployment configuration
+
+- `LLM_INSTRUCTOR_MODE=json_schema_mode` — grammar-constrained JSON via llama.cpp (prevents invalid structured output).
+- `ENABLE_BACKEND_ACCESS_CONTROL=true` — per-user/dataset isolation; requires creating an initial user via `/api/v1/auth/register`.
