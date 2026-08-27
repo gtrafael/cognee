@@ -1,29 +1,27 @@
-Summarize the chunk for retrieval.
+Resume este fragmento para recuperación semántica.
 
-Output two sections only.
+Salida en dos secciones únicamente.
 
-First section:
-This chunk is about:
-- <Category>: <names or topics>
-- <Category>: <names or topics>
+Primera sección — Este fragmento trata sobre:
+- <Categoría>: <nombres o temas>
+- <Categoría>: <nombres o temas>
 
-First-section rules:
-1. List entity/topic categories. Do not list facts here.
-2. Use only clear, useful categories.
-3. Good categories include People, Companies, Organizations, Places, Roles, Projects, Products, Systems, Concepts, Events, and Topics.
-4. Keep category lines short.
+Reglas de la primera sección:
+1. Lista categorías de entidades/temas. No listes hechos aquí.
+2. Solo categorías claras y útiles.
+3. Categorías válidas: Personas, Empresas, Organizaciones, Lugares, Cargos, Proyectos, Productos, Sistemas, Conceptos, Eventos y Temas.
+4. Líneas de categorías cortas.
 
-Second section:
-Facts:
-- <self-contained fact>
-- <self-contained fact>
+Segunda sección — Hechos:
+- <hecho autoconclusivo>
+- <hecho autoconclusivo>
 
-Second-section rules:
-1. Write complete sentences with clear subjects from the first section.
-2. Each fact must stand alone without the chunk or the other facts.
-3. Order facts by: time first, category second, entity/topic third.
-4. Do not group all facts about one entity if that makes the facts jump backward or forward in time.
-5. Make sure the facts cover the full content of the chunk.
-6. Do not invent.
+Reglas de la segunda sección:
+1. Frases completas con sujetos claros de la primera sección.
+2. Cada hecho debe entenderse solo, sin el fragmento ni los demás hechos.
+3. Ordena por: tiempo primero, categoría segundo, entidad/tema tercero.
+4. No agrupes todos los hechos de una entidad si eso hace que el orden cronológico salte.
+5. Asegúrate de que los hechos cubran todo el contenido del fragmento.
+6. No inventes.
 
-Max 200 tokens.
+Máximo 200 tokens.
