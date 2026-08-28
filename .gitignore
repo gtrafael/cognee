@@ -196,6 +196,8 @@ cognee/cache/
 .anon_id
 
 node_modules/
+.atl/
+.codegraph/
 
 # Evals
 SWE-bench_testsample/
