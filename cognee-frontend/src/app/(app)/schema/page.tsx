@@ -25,7 +25,7 @@ import {
 } from "@/modules/configuration/userConfiguration";
 import { listOntologies, uploadOntology, deleteOntology, type OntologyMeta } from "@/modules/ontologies/ontologyApi";
 import { generateCustomPrompt } from "@/modules/llm/managementLlmApi";
-import cognifyDataset from "@/modules/datasets/cognifyDataset";
+import reprocessDataset from "@/modules/datasets/reprocessDataset";
 import { captureException } from "@/utils/monitoring";
 
 // ── Shared button style (black) ───────────────────────────────────────────
@@ -304,13 +304,15 @@ export default function SchemaPage() {
 
   async function handleReprocess() {
     if (!cogniInstance || !datasetId || !datasetName) return;
+    if (!window.confirm(`Rebuild all derived memory for "${datasetName}"? Original documents will be preserved.`)) return;
     setReprocessing(true);
     setVizSrc(null);
     try {
-      await cognifyDataset({ id: datasetId, name: datasetName, data: [], status: "processing" }, cogniInstance, getCognifyOptions());
+      notifications.show({ title: "Re-processing started", message: "Clearing derived memory and rebuilding it from the original documents.", color: "blue", autoClose: 4000 });
+      await reprocessDataset({ id: datasetId, name: datasetName, data: [], status: "processing" }, cogniInstance, getCognifyOptions());
       trackEvent({ pageName: "Memory Schema", eventName: "dataset_reprocessed", additionalProperties: { dataset_id: datasetId } });
-      notifications.show({ title: "Re-processing started", message: "The memory schema is being rebuilt.", color: "blue", autoClose: 4000 });
-      setTimeout(() => setVizRefreshKey((k) => k + 1), 8000);
+      setVizRefreshKey((k) => k + 1);
+      notifications.show({ title: "Re-processing complete", message: "The memory schema was rebuilt from the original documents.", color: "green", autoClose: 5000 });
     } catch (err) {
       notifications.show({ title: "Re-process failed", message: err instanceof Error ? err.message : String(err), color: "red" });
     } finally {
