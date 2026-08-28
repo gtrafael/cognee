@@ -163,26 +163,60 @@ MCP server and Frontend:
 
 Our GitHub Actions run the same ruff checks and pytest suites shown above (`.github/workflows/basic_tests.yml` and related workflows). Use the commands in this document locally to minimize CI surprises.
 
-## About This Fork (gtrafael/cognee)
+## Fork Management Policy (gtrafael/cognee)
 
-This fork extends upstream cognee with deployment-specific customizations.
+This section defines the required repository policy. It does not assert that the named branches, remotes, tags, or deployment revision currently exist; inspect the repository before acting. The external canonical recovery copy of this policy is the sibling `cognee-deployment/AGENTS.md`.
 
-### Branches
+### Branch roles and normal development
 
-- **`fix/v1.5.3-local-api-host`** — technical fixes on top of upstream (null guards, host resolution, etc.)
-- **`feat/summarize-es`** — **deploy branch**: same as `fix/` plus Spanish summarization and graph-generation prompts under `cognee/infrastructure/llm/prompts/`.
+| Branch | Required role |
+| --- | --- |
+| Fork `main` | Clean mirror of `upstream/main`; never add custom modifications. |
+| `custom/main` | Permanent personalized branch and source of deployable revisions. |
+| Feature/fix branches | Short-lived branches created from `custom/main`; normally delete after the validated merge is pushed. |
+| `update/upstream-*` | Temporary branches used to evaluate upstream updates; normally delete after the approved merge is pushed. |
 
-**Always deploy from `feat/summarize-es`** unless explicitly told otherwise. The sibling repo `gtrafael/cognee-deployment` contains the docker-compose stack and `.env`.
+Feature and fix branches start from `custom/main` and merge back only after validation. After validating and pushing the merge, normally delete the merged branch locally and remotely. Normal integration uses merges, not cherry-pick. Cherry-pick is exceptional and is appropriate only when deliberately selecting a specific commit.
 
-### Branch strategy
+Future upstream evaluation depends on the commits and merge history preserved in `custom/main`, not on retaining stale branch names. A merged branch name is only a movable reference; deleting it does not delete commits that remain reachable from `custom/main`. Keep a feature or fix branch only while it is active, intentionally maintained as a release line, or needed for an open pull request—not merely for historical evaluation. `custom/main` is permanent and must never be deleted.
 
-New fixes land first on `fix/v1.5.3-local-api-host`, then are squashed into `feat/summarize-es`. The feature branch is intentionally kept with a single squashed commit per propagation.
+Never put fork-specific changes to this `AGENTS.md` on mirror `main` unless upstream itself carries them.
 
-**IMPORTANT**: every time you propagate changes from `fix/` into `feat/summarize-es` (or squash upstream work), **notify the user** before and confirm there are no pending changes on `feat/` that would be lost. Then apply pending changes first, squash, and inform the user again.
+Read-only state checks:
 
-### Related repositories
+```bash
+git remote -v
+git branch --all --list main custom/main 'update/upstream-*'
+git log --oneline --decorate --graph --all -20
+```
 
-- `gtrafael/cognee-deployment` — Docker Compose stack, `.env`, and deployment scripts (see its README for the branch strategy and deployment steps).
+### Evaluating upstream updates
+
+1. Synchronize fork `main` so it exactly mirrors the latest `upstream/main`.
+2. From `custom/main`, create a temporary `update/upstream-<version-or-date>` branch.
+3. Merge the updated `main` into the temporary branch.
+4. Evaluate every customization against upstream, resolving conflicts deliberately.
+5. Run the relevant Cognee tests and test the deployment from `cognee-deployment`.
+6. Obtain approval, then merge the temporary branch into `custom/main`.
+7. Validate and push the merge, then normally delete the local and remote temporary update branch.
+
+During every evaluation, verify that this policy remains present in `AGENTS.md` on the candidate `custom/main` history. If the upstream merge removes it or conflicts with it, restore or adapt it on the temporary update branch before approval. Use `cognee-deployment/AGENTS.md` as the external canonical recovery copy.
+
+### Deployment revisions
+
+The sibling `cognee-deployment` repository deploys `custom/main` during active development. For controlled deployments, prefer an immutable tag pointing to an approved commit on `custom/main`. Tags identify exact deployed commits; GitHub Releases are optional metadata and are not required.
+
+Verify rather than infer the selected revision:
+
+```bash
+git branch --show-current
+git describe --tags --exact-match 2>/dev/null || true
+git rev-parse HEAD
+```
+
+### Related repository
+
+- `gtrafael/cognee-deployment` — Docker Compose stack, deployment validation, and the canonical recovery copy of this fork-management policy.
 
 ### Deployment configuration
 
