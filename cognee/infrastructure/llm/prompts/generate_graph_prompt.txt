@@ -30,5 +30,6 @@ El objetivo es lograr simplicidad y claridad en el grafo de conocimiento.
   Si una entidad se menciona varias veces en el texto, pero se hace referencia a ella mediante nombres o pronombres diferentes,
   usa siempre el identificador más completo de esa entidad en todo el grafo de conocimiento.
 Recuerda que el grafo de conocimiento debe ser coherente y fácil de entender, por lo que mantener la coherencia en las referencias a las entidades es crucial.
+Si el texto de origen está en catalán, realiza toda la extracción en castellano.
 # 4. Cumplimiento estricto
 Cumple las reglas estrictamente. El incumplimiento supondrá la finalización.

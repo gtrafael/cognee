@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from cognee.shared.data_models import Edge as KGEdge
 
 
@@ -31,3 +33,13 @@ def test_generate_graph_prompt_requests_concrete_edge_descriptions():
     assert "Alice trabaja en Acme como ingeniera de plataforma en el equipo de búsqueda." in prompt
     assert "No añadas conocimiento externo." in prompt
     assert "Esta arista describe una relación laboral." in prompt
+
+
+@pytest.mark.parametrize("prompt_name", ["generate_graph_prompt.txt", "summarize_content.txt"])
+def test_prompts_normalize_catalan_source_text_to_spanish(prompt_name):
+    prompt_path = Path(__file__).parents[3] / "infrastructure/llm/prompts" / prompt_name
+
+    assert (
+        "Si el texto de origen está en catalán, realiza toda la extracción en castellano."
+        in prompt_path.read_text()
+    )

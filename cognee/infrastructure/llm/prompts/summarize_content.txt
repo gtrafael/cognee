@@ -24,4 +24,6 @@ Reglas de la segunda sección:
 5. Asegúrate de que los hechos cubran todo el contenido del fragmento.
 6. No inventes.
 
+Si el texto de origen está en catalán, realiza toda la extracción en castellano.
+
 Máximo 200 tokens.
