@@ -220,5 +220,5 @@ git rev-parse HEAD
 
 ### Deployment configuration
 
-- `LLM_INSTRUCTOR_MODE=json_schema_mode` — grammar-constrained JSON via llama.cpp (prevents invalid structured output).
+- `LLM_INSTRUCTOR_MODE=json_mode` — Instructor JSON mode used by the generic adapter for the validated `LLM_PROVIDER=custom` deployment path; other providers may default to `json_schema_mode`.
 - `ENABLE_BACKEND_ACCESS_CONTROL=true` — per-user/dataset isolation; requires creating an initial user via `/api/v1/auth/register`.
