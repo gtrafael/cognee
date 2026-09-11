@@ -114,18 +114,15 @@ class CogneeClient:
     def _get_headers(self, include_content_type: bool = True) -> Dict[str, str]:
         """Get headers for API requests.
 
-        Uses X-Api-Key + X-Tenant-Id for tenant APIs (cloud),
-        falls back to Bearer token for local/self-hosted backends.
+        Uses X-Api-Key for API authentication and adds X-Tenant-Id for tenant APIs.
         """
         headers: Dict[str, str] = {}
         if include_content_type:
             headers["Content-Type"] = "application/json"
         if self.api_token:
+            headers["X-Api-Key"] = self.api_token
             if self.tenant_id:
-                headers["X-Api-Key"] = self.api_token
                 headers["X-Tenant-Id"] = self.tenant_id
-            else:
-                headers["Authorization"] = f"Bearer {self.api_token}"
         return headers
 
     @staticmethod

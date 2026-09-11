@@ -153,6 +153,28 @@ async def test_mcp_exposes_only_memory_tools():
     assert {tool.name for tool in tools} == EXPECTED_TOOLS
 
 
+@pytest.mark.parametrize("include_content_type", [True, False])
+@pytest.mark.parametrize("api_token", ["test-api-key", None, ""])
+@pytest.mark.parametrize("tenant_id", [None, "12345678-1234-1234-1234-123456789abc"])
+@pytest.mark.asyncio
+async def test_cognee_client_api_headers(api_token, tenant_id, include_content_type):
+    api_url = f"https://tenant-{tenant_id}.cognee.ai" if tenant_id else "http://localhost:8000"
+    client = CogneeClient(api_url=api_url, api_token=api_token)
+    expected = {"Content-Type": "application/json"} if include_content_type else {}
+    if api_token:
+        expected["X-Api-Key"] = api_token
+        if tenant_id:
+            expected["X-Tenant-Id"] = tenant_id
+
+    try:
+        assert client.tenant_id == tenant_id
+        assert client._get_headers(include_content_type=include_content_type) == expected
+        if include_content_type:
+            assert client._get_headers() == expected
+    finally:
+        await client.close()
+
+
 @pytest.mark.asyncio
 async def test_cognee_client_api_add_uses_content_addressed_filename():
     requests: list[httpx.Request] = []
