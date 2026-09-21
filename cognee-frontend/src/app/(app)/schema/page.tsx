@@ -26,6 +26,7 @@ import {
 import { listOntologies, uploadOntology, deleteOntology, type OntologyMeta } from "@/modules/ontologies/ontologyApi";
 import { generateCustomPrompt } from "@/modules/llm/managementLlmApi";
 import reprocessDataset from "@/modules/datasets/reprocessDataset";
+import processPendingDataset from "@/modules/datasets/processPendingDataset";
 import { captureException } from "@/utils/monitoring";
 
 // ── Shared button style (black) ───────────────────────────────────────────
@@ -126,6 +127,7 @@ export default function SchemaPage() {
   const [savingPrompt, setSavingPrompt] = useState(false);
   const [showUploadOntologyModal, setShowUploadOntologyModal] = useState(false);
   const [reprocessing, setReprocessing] = useState(false);
+  const [processingPending, setProcessingPending] = useState(false);
 
   const activeDataset = selectedDataset ?? datasets[0] ?? null;
   const datasetId = activeDataset?.id ?? null;
@@ -303,20 +305,37 @@ export default function SchemaPage() {
   }
 
   async function handleReprocess() {
-    if (!cogniInstance || !datasetId || !datasetName) return;
-    if (!window.confirm(`Rebuild all derived memory for "${datasetName}"? Original documents will be preserved.`)) return;
+    if (!cogniInstance || !datasetId || !datasetName || reprocessing || processingPending) return;
+    if (!window.confirm(`¿Desea reconstruir toda la memoria derivada de "${datasetName}"? Se conservarán los documentos originales.`)) return;
     setReprocessing(true);
     setVizSrc(null);
     try {
-      notifications.show({ title: "Re-processing started", message: "Clearing derived memory and rebuilding it from the original documents.", color: "blue", autoClose: 4000 });
+      notifications.show({ title: "Reconstrucción iniciada", message: "Se está eliminando la memoria derivada y reconstruyéndola a partir de los documentos originales.", color: "blue", autoClose: 4000 });
       await reprocessDataset({ id: datasetId, name: datasetName, data: [], status: "processing" }, cogniInstance, getCognifyOptions());
       trackEvent({ pageName: "Memory Schema", eventName: "dataset_reprocessed", additionalProperties: { dataset_id: datasetId } });
       setVizRefreshKey((k) => k + 1);
-      notifications.show({ title: "Re-processing complete", message: "The memory schema was rebuilt from the original documents.", color: "green", autoClose: 5000 });
+      notifications.show({ title: "Reconstrucción completada", message: "El esquema de memoria se reconstruyó a partir de los documentos originales.", color: "green", autoClose: 5000 });
     } catch (err) {
-      notifications.show({ title: "Re-process failed", message: err instanceof Error ? err.message : String(err), color: "red" });
+      notifications.show({ title: "Error de reconstrucción", message: err instanceof Error ? err.message : String(err), color: "red" });
     } finally {
       setReprocessing(false);
+    }
+  }
+
+  async function handleProcessPending() {
+    if (!cogniInstance || !datasetId || !datasetName || processingPending || reprocessing) return;
+    setProcessingPending(true);
+    setVizSrc(null);
+    try {
+      notifications.show({ title: "Procesamiento iniciado", message: "Se están procesando los archivos pendientes o no completados.", color: "blue", autoClose: 4000 });
+      await processPendingDataset({ id: datasetId, name: datasetName, data: [], status: "processing" }, cogniInstance, getCognifyOptions());
+      trackEvent({ pageName: "Memory Schema", eventName: "dataset_pending_processed", additionalProperties: { dataset_id: datasetId } });
+      setVizRefreshKey((k) => k + 1);
+      notifications.show({ title: "Procesamiento completado", message: "Los archivos pendientes o no completados se procesaron correctamente.", color: "green", autoClose: 5000 });
+    } catch (err) {
+      notifications.show({ title: "Error de procesamiento", message: err instanceof Error ? err.message : String(err), color: "red" });
+    } finally {
+      setProcessingPending(false);
     }
   }
 
@@ -487,20 +506,34 @@ export default function SchemaPage() {
 
           {/* Re-process */}
           <button
+            onClick={handleProcessPending}
+            disabled={processingPending || reprocessing}
+            style={{
+              ...BTN,
+              background: processingPending ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.75)",
+              opacity: processingPending || reprocessing ? 0.6 : 1,
+              cursor: processingPending || reprocessing ? "not-allowed" : "pointer",
+            }}
+          >
+            {processingPending && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(237,236,234,0.7)" strokeWidth="2.5" strokeLinecap="round" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>}
+            {processingPending ? "Procesando…" : "Procesar archivos pendientes"}
+          </button>
+
+          <button
             onClick={handleReprocess}
-            disabled={reprocessing}
+            disabled={reprocessing || processingPending}
             style={{
               ...BTN,
               background: reprocessing ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.75)",
               border: "1px solid rgba(255,255,255,0.18)",
-              opacity: reprocessing ? 0.6 : 1,
-              cursor: reprocessing ? "not-allowed" : "pointer",
+              opacity: reprocessing || processingPending ? 0.6 : 1,
+              cursor: reprocessing || processingPending ? "not-allowed" : "pointer",
             }}
           >
             {reprocessing
               ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(237,236,234,0.7)" strokeWidth="2.5" strokeLinecap="round" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
               : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(237,236,234,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 102.13-9.36L1 10" /></svg>}
-            {reprocessing ? "Processing…" : "Re-process"}
+            {reprocessing ? "Reconstruyendo…" : "Reconstruir toda la memoria"}
           </button>
 
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
