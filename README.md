@@ -1,3 +1,5 @@
+> **Fork note:** `custom/main` keeps a minimal set of local adaptations documented in [`docs/FORK.md`](docs/FORK.md).
+
 <div align="center">
   <a href="https://github.com/topoteretes/cognee">
     <img src="assets/cognee-logo.svg" alt="Cognee Logo" width="260">
