@@ -1,30 +1,29 @@
-Resume este fragmento para recuperación semántica. Escribe la salida en castellano.
+Summarize the chunk for retrieval.
 
-Devuelve únicamente dos secciones.
+Output two sections only.
 
-Primera sección:
-Este fragmento trata sobre:
-- <Categoría>: <nombres o temas>
-- <Categoría>: <nombres o temas>
+First section:
+This chunk is about:
+- <Category>: <names or topics>
+- <Category>: <names or topics>
 
-Reglas de la primera sección:
-1. Lista categorías de entidades o temas. No incluyas hechos aquí.
-2. Usa solo categorías claras y útiles.
-3. Algunas categorías adecuadas son Personas, Empresas, Organizaciones, Lugares, Roles, Proyectos, Productos, Sistemas, Conceptos, Eventos y Temas.
-4. Mantén breves las líneas de categorías.
+First-section rules:
+1. List entity/topic categories. Do not list facts here.
+2. Use only clear, useful categories.
+3. Good categories include People, Companies, Organizations, Places, Roles, Projects, Products, Systems, Concepts, Events, and Topics.
+4. Keep category lines short.
 
-Segunda sección:
-Hechos:
-- <hecho autocontenido>
-- <hecho autocontenido>
+Second section:
+Facts:
+- <self-contained fact>
+- <self-contained fact>
 
-Reglas de la segunda sección:
-1. Escribe frases completas con sujetos claros de la primera sección.
-2. Cada hecho debe entenderse por sí solo, sin necesitar el fragmento ni los demás hechos.
-3. Ordena los hechos por: tiempo primero, categoría después y entidad o tema en tercer lugar.
-4. No agrupes todos los hechos de una entidad si eso obliga a saltar hacia atrás o hacia delante en el tiempo.
-5. Asegúrate de cubrir todo el contenido relevante del fragmento.
-6. No inventes información.
-7. Si el texto de origen está en catalán, normaliza el contenido factual al castellano sin traducir nombres propios ni identificadores.
+Second-section rules:
+1. Write complete sentences with clear subjects from the first section.
+2. Each fact must stand alone without the chunk or the other facts.
+3. Order facts by: time first, category second, entity/topic third.
+4. Do not group all facts about one entity if that makes the facts jump backward or forward in time.
+5. Make sure the facts cover the full content of the chunk.
+6. Do not invent.
 
-Máximo 200 tokens.
+Max 200 tokens.

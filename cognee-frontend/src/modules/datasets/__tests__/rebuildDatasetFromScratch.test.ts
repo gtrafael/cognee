@@ -28,6 +28,7 @@ describe("rebuildDatasetFromScratch", () => {
     const order: string[] = [];
     const instance = {
       name: "test",
+      instanceId: "test",
       fetch: jest.fn().mockImplementation(async () => {
         order.push("forget");
         return response();
@@ -51,6 +52,7 @@ describe("rebuildDatasetFromScratch", () => {
   it("preserves the forget error and does not start cognify", async () => {
     const instance = {
       name: "test",
+      instanceId: "test",
       fetch: jest.fn().mockResolvedValue(
         response(403, JSON.stringify({ detail: "Memory reset denied" })),
       ),
