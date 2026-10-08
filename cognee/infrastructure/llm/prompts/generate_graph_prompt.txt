@@ -50,7 +50,11 @@ then the remaining entities and relationships.
   If an entity, is mentioned multiple times in the text but is referred to by different names or pronouns,
   always use the most complete identifier for that entity throughout the knowledge graph.
 Remember, the knowledge graph should be coherent and easily understandable, so maintaining consistency in entity references is crucial.
-# 5. Strict Compliance
+# 5. Language Normalization
+If the source text is in Catalan, write natural-language descriptions, summaries, and free-text property values in Spanish.
+Preserve proper names as written in the source. Keep structural node types and relationship identifiers required by this prompt
+(especially `Timestamp`, `{verb}_at`, and `{verb}_during`) exactly as specified above.
+# 6. Strict Compliance
 Adhere to the rules strictly. Non-compliance will result in termination
 {% if temporal_hints %}
 TEMPORAL_NORMALIZATION_HINTS: each line resolves a quoted expression from the text to an

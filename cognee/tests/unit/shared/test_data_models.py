@@ -31,3 +31,17 @@ def test_generate_graph_prompt_requests_concrete_edge_descriptions():
     assert "Alice works at Acme as a platform engineer on the search team." in prompt
     assert "Do not add outside knowledge." in prompt
     assert "This edge describes an employment relationship." in prompt
+
+
+def test_default_prompts_preserve_temporal_semantics_and_normalize_language():
+    prompts_dir = Path(__file__).parents[3] / "infrastructure/llm/prompts"
+    graph_prompt = (prompts_dir / "generate_graph_prompt.txt").read_text()
+    summary_prompt = (prompts_dir / "summarize_content.txt").read_text()
+
+    assert "# 2. Timestamps" in graph_prompt
+    assert "TEMPORAL_NORMALIZATION_HINTS" in graph_prompt
+    assert "If the source text is in Catalan" in graph_prompt
+    assert "Timestamp" in graph_prompt
+    assert "{verb}_at" in graph_prompt
+    assert "Escribe la salida en castellano." in summary_prompt
+    assert "Si el texto de origen está en catalán" in summary_prompt
