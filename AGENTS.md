@@ -2,6 +2,20 @@
 
 This document summarizes how to work with the cognee repository: how it’s organized, how to build, test, lint, and contribute. It mirrors our actual tooling and CI while providing quick commands for local development.
 
+## Custom Fork Policy
+
+This fork is intentionally kept close to upstream Cognee. The deployable branch is `custom/main`, rebased conceptually on an upstream release rather than carrying historical patch stacks forward.
+
+Current fork-specific behavior:
+- Preserve upstream temporal extraction semantics while normalizing Catalan source content into Spanish for translatable concepts and free-text graph output.
+- Produce retrieval summaries in Spanish.
+- In the local UI, distinguish a full rebuild (clear derived graph/vector memory with `memoryOnly`, preserve source documents, then cognify all documents again) from an incremental retry after a failed build.
+- Surface backend HTTP errors from `cognifyDataset` instead of swallowing them while parsing JSON.
+
+Do not reintroduce retired patches for local API host resolution, nullable pipeline fields, or self-hosted MCP API-key authentication: upstream v1.6.3 already provides those capabilities. For MCP API mode, configure `COGNEE_API_AUTH_SCHEME=x-api-key` in deployment instead of patching the client.
+
+When updating upstream, start from the new upstream release, reapply only the behaviors listed above, and verify whether each customization is still necessary before carrying it forward. Avoid copying an older default extraction prompt into the frontend: custom prompts replace the backend default and can otherwise mask newer extraction behavior.
+
 ## Project Structure & Module Organization
 
 - `cognee/`: Core Python library and API.
