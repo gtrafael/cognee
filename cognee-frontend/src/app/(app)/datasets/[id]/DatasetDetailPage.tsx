@@ -33,6 +33,7 @@ import mapInferredSchema from "@/modules/graphModels/mapInferredSchema";
 import isMemoryBlobName from "@/modules/datasets/isMemoryBlobName";
 import TrashIcon from "@/ui/elements/TrashIcon";
 import cognifyDataset from "@/modules/datasets/cognifyDataset";
+import rebuildDatasetFromScratch from "@/modules/datasets/rebuildDatasetFromScratch";
 import pollDatasetStatus from "@/modules/datasets/pollDatasetStatus";
 import { useDatasetStatuses } from "@/modules/datasets/useDatasetStatuses";
 import { INSUFFICIENT_CREDITS_REASON } from "@/modules/datasets/datasetStatusDetail";
@@ -57,41 +58,6 @@ interface FileEntry {
   size?: number;
   createdAt?: string;
 }
-
-
-// Default extraction prompt from cognee OSS (generate_graph_prompt.txt)
-const DEFAULT_EXTRACTION_PROMPT = `You are a top-tier algorithm designed for extracting information in structured formats to build a knowledge graph.
-**Nodes** represent entities and concepts. They're akin to Wikipedia nodes.
-**Edges** represent relationships between concepts. They're akin to Wikipedia links.
-
-The aim is to achieve simplicity and clarity in the knowledge graph.
-
-# 1. Labeling Nodes
-**Consistency**: Ensure you use basic or elementary types for node labels.
-  - For example, when you identify an entity representing a person, always label it as **"Person"**.
-  - Avoid using more specific terms like "Mathematician" or "Scientist", keep those as "profession" property.
-  - Don't use too generic terms like "Entity".
-**Node IDs**: Never utilize integers as node IDs.
-  - Node IDs should be names or human-readable identifiers found in the text.
-**Node Names**: Every node MUST include a "name" field.
-  - Use the most complete human-readable name for the entity (e.g., "Albert Einstein", "Python").
-
-# 2. Handling Numerical Data and Dates
-  - For example, when you identify an entity representing a date, make sure it has type **"Date"**.
-  - Extract the date in the format "YYYY-MM-DD"
-  - If not possible to extract the whole date, extract month or year, or both if available.
-  - **Property Format**: Properties must be in a key-value format.
-  - **Quotation Marks**: Never use escaped single or double quotes within property values.
-  - **Naming Convention**: Use snake_case for relationship names, e.g., \`acted_in\`.
-
-# 3. Coreference Resolution
-  - **Maintain Entity Consistency**: When extracting entities, it's vital to ensure consistency.
-  If an entity is mentioned multiple times in the text but is referred to by different names or pronouns,
-  always use the most complete identifier for that entity throughout the knowledge graph.
-Remember, the knowledge graph should be coherent and easily understandable, so maintaining consistency in entity references is crucial.
-
-# 4. Strict Compliance
-Adhere to the rules strictly. Non-compliance will result in termination.`;
 
 
 // ── Main Page ──
@@ -284,7 +250,10 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
 
   function handleStartBlankPrompt() {
     setEditingPromptName(`${datasetName} Prompt`);
-    setEditingPromptText(DEFAULT_EXTRACTION_PROMPT);
+    // Start truly blank instead of copying a stale snapshot of the backend
+    // default prompt. Until the user writes custom instructions, Cognee's
+    // current default extraction prompt (including temporal hints) stays active.
+    setEditingPromptText("");
     setShowCreatePromptModal(false);
     setShowPromptEditor(true);
   }
@@ -652,23 +621,49 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
     }
   }
 
-  // Re-run cognify for the current dataset (used by both the "outdated" and
-  // "failed" banners). onError restores the pre-rebuild banner state.
-  async function rebuildGraph(onError: () => void): Promise<void> {
+  // Configuration changes need a true rebuild: clear only derived memory,
+  // preserve the source documents, then process every document again. A retry
+  // after a failed build stays incremental so completed work is not discarded.
+  async function rebuildGraph(onError: () => void, fromScratch = false): Promise<void> {
     if (!cogniInstance) return;
+
+    if (
+      fromScratch &&
+      !window.confirm(
+        "Rebuild the knowledge graph from scratch? Derived graph/vector memory will be cleared, but the original documents will be preserved.",
+      )
+    ) {
+      return;
+    }
+
     setGraphOutdated(false);
     setDatasetStatus("processing");
+    const dataset = { id: datasetId, name: datasetName, data: [], status: "processing" };
+
     try {
-      await cognifyDataset({ id: datasetId, name: datasetName, data: [], status: "processing" }, cogniInstance, getCognifyOptions());
-      trackEvent({ pageName: "Dataset Detail", eventName: "dataset_recognified", additionalProperties: { dataset_id: datasetId } });
+      if (fromScratch) {
+        await rebuildDatasetFromScratch(dataset, cogniInstance, getCognifyOptions());
+      } else {
+        await cognifyDataset(dataset, cogniInstance, getCognifyOptions());
+      }
+
+      trackEvent({
+        pageName: "Dataset Detail",
+        eventName: fromScratch ? "dataset_rebuilt_from_scratch" : "dataset_recognified",
+        additionalProperties: { dataset_id: datasetId },
+      });
       clearDatasetOutdated(cogniInstance, datasetId).catch((err) =>
         captureException(err, { context: "dataset-detail.clear-outdated-flag", datasetId }));
       // Force an immediate status re-fetch so the shared poller picks up the
       // new in-progress state right away instead of waiting for the next tick.
       refetchStatuses();
     } catch (err) {
-      console.error("Re-cognify failed:", err);
-      notifications.show({ title: "Rebuild failed", message: err instanceof Error ? err.message : String(err), color: "red" });
+      console.error(fromScratch ? "Full rebuild failed:" : "Re-cognify failed:", err);
+      notifications.show({
+        title: fromScratch ? "Full rebuild failed" : "Retry failed",
+        message: err instanceof Error ? err.message : String(err),
+        color: "red",
+      });
       onError();
     }
   }
@@ -950,11 +945,11 @@ export default function DatasetDetailPage({ datasetId }: { datasetId: string }) 
             Knowledge graph is outdated. The graph model was changed since the last build.
           </span>
           <button
-            onClick={() => rebuildGraph(() => { setGraphOutdated(true); setDatasetStatus("outdated"); })}
+            onClick={() => rebuildGraph(() => { setGraphOutdated(true); setDatasetStatus("outdated"); }, true)}
             className="cursor-pointer hover:bg-yellow-500/20"
             style={{ background: "rgba(245,158,11,0.2)", border: "1px solid rgba(245,158,11,0.35)", borderRadius: 6, padding: "6px 14px", fontSize: 13, fontWeight: 500, color: "#FBBF24", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
-            Rebuild graph
+            Rebuild from scratch
           </button>
         </div>
       )}
