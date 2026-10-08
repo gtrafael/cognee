@@ -9,6 +9,7 @@ jest.mock("@/modules/configuration/pipelineSettings", () => ({
 it("surfaces the original cognify server error", async () => {
   const instance = {
     name: "test",
+    instanceId: "test",
     fetch: jest.fn().mockResolvedValue(
       new Response(JSON.stringify({ detail: "Invalid graph model" }), {
         status: 422,
