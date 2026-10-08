@@ -9,6 +9,7 @@ from cognee.infrastructure.llm.config import (
 )
 from cognee.infrastructure.llm.LLMGateway import LLMGateway
 from cognee.infrastructure.llm.prompts import render_prompt
+from cognee.infrastructure.llm.prompts.language_policy import apply_spanish_output_policy
 from cognee.shared.llm_graph_model import (
     content_graph_to_data_point,
     datapoint_model_to_basemodel,
@@ -46,6 +47,7 @@ async def extract_content_graph(
         system_prompt = render_prompt(
             prompt_path, {"temporal_hints": temporal_hints or []}, base_directory=base_directory
         )
+        system_prompt = apply_spanish_output_policy(system_prompt)
 
     simplified_response_model = response_model
     if isinstance(response_model, type) and issubclass(response_model, DataPoint):
