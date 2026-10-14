@@ -1,0 +1,57 @@
+name: Fork check
+
+on:
+  pull_request:
+    branches:
+      - custom/main
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fork-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-fork-tests:
+    name: Python fork tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Cognee
+        uses: ./.github/actions/cognee_setup
+        with:
+          base-extras: "dev"
+      - name: Run fork-specific Python tests
+        run: |
+          uv run pytest -q \
+            cognee/tests/unit/shared/test_data_models.py \
+            cognee/tests/unit/infrastructure/llm/test_fork_language_policy.py
+
+  frontend-fork-tests:
+    name: Frontend fork tests
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: cognee-frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: cognee-frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Run fork-specific Jest tests
+        run: |
+          npm test -- --runInBand \
+            src/modules/datasets/__tests__/cognifyDataset.test.ts \
+            src/modules/datasets/__tests__/rebuildDatasetFromScratch.test.ts
+      - name: Build production frontend
+        run: npm run build
