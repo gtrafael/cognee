@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - custom/main
+      - validation/v1.6.4-base
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
