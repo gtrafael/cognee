@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from cognee.infrastructure.llm.exceptions import is_structured_output_validation_error
 from cognee.infrastructure.llm.LLMGateway import LLMGateway
 from cognee.infrastructure.llm.prompts import read_query_prompt
+from cognee.infrastructure.llm.prompts.language_policy import apply_spanish_output_policy
 from cognee.shared.data_models import SummarizedCode
 from cognee.shared.logging_utils import get_logger
 
@@ -25,7 +26,7 @@ def get_mock_summarized_code() -> SummarizedCode:
 
 
 async def extract_summary(content: str, response_model: type[BaseModel]):
-    system_prompt = read_query_prompt("summarize_content.txt") or ""
+    system_prompt = apply_spanish_output_policy(read_query_prompt("summarize_content.txt") or "")
 
     llm_output = await LLMGateway.acreate_structured_output(content, system_prompt, response_model)
 
