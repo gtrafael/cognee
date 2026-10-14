@@ -1,9 +1,6 @@
 name: Fork check
 
 on:
-  push:
-    branches:
-      - update/v1.6.4-custom
   pull_request:
     branches:
       - custom/main
