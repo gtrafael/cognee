@@ -10,6 +10,8 @@ El objetivo es mantener un fork mínimo y fácil de volver a basar sobre nuevas 
 - Rama desplegable: `custom/main`
 - Estado anterior preservado: `archive/custom-v1.6.3-2026-10-14`
 
+La actualización v1.6.4 no solapa archivos personalizados del fork; sus cambios upstream se concentran en LanceDB/PGVector, Turso y el harness de workers.
+
 ## Personalizaciones activas
 
 ### Salida semántica en castellano
