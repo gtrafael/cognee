@@ -36,19 +36,29 @@ jobs:
             .github/workflows/docker_validation_nightly.yml
             .github/workflows/dockerhub-mcp.yml
             .github/workflows/dockerhub.yml
+            .github/workflows/dockerhub-ui.yml
+            .github/workflows/docs_issue_triage.yml
             .github/workflows/helm-ci.yml
             .github/workflows/label-core-team.yml
             .github/workflows/mirror-images.yml
             .github/workflows/nightly_tests.yml
+            .github/workflows/nightly_scheduler.yml
             .github/workflows/pr_lint
+            .github/workflows/pr_lint.yml
             .github/workflows/release.yml
             .github/workflows/release_discord_action.yml
+            .github/workflows/release_mcp.yml
+            .github/workflows/router_docstring_sync.yml
             .github/workflows/release_test.yml
             .github/workflows/require-linear-issue.yml
             .github/workflows/scorecard.yml
+            .github/workflows/skills_link_check.yml
+            .github/workflows/spec_extras_sync.yml
             .github/workflows/sync_mintlify_docs.yml
+            .github/workflows/telemetry-insights.yml
             .github/workflows/test_suites.yml
             .github/workflows/update-contributors.yml
+            .github/workflows/weekly-ticket-proposals.yml
           )
           for path in "${forbidden[@]}"; do
             if [[ -e "$path" ]]; then
