@@ -56,11 +56,11 @@ puntuales durante una actualización de release, pero no se ejecutan automática
 
 No forman parte del fork y no deben reintroducirse al actualizar upstream:
 
-- nightlies, benchmarks programados y validación periódica de imágenes publicadas;
-- publicación a Docker Hub, PyPI/canary, GitHub Releases, Discord o Mintlify;
+- nightlies, schedulers, benchmarks programados y validación periódica de imágenes publicadas;
+- publicación a Docker Hub (API/UI/MCP), PyPI/canary, GitHub Releases, Discord o Mintlify;
 - mirroring de imágenes y Scorecard programado;
 - políticas organizativas de upstream: Linear, DCO, core-team labels, PR lint/release-drafter;
-- automatizaciones de comunidad, stale PRs, contributors y documentación de la rama `dev`;
+- automatizaciones de comunidad, stale PRs, contributors, triage/sync de documentación, telemetría, MotherDuck/Claude y propuestas automáticas de tickets;
 - la suite general `test_suites.yml` como trigger automático de `main/dev`;
 - CI específica de Helm/catalogo que no forma parte de nuestro deployment.
 
