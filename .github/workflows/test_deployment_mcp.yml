@@ -1,13 +1,9 @@
 name: test | deployment mcp http e2e
 
+# Fork policy: useful deployment test, but manual-only. The fork does not use
+# upstream's dev/main PR automation model.
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [dev]
-    paths:
-      - "cognee-mcp/**"
-      - "cognee/tests/deployment/**"
-      - ".github/workflows/test_deployment_mcp.yml"
 
 permissions:
   contents: read

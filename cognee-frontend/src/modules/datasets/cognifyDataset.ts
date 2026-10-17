@@ -2,6 +2,7 @@
 import { Dataset } from "../ingestion/useDatasets";
 import { CogneeInstance } from "../instances/types";
 import { getPipelineSettingsFromStorage } from "../configuration/pipelineSettings";
+import { toHttpError } from "@/services/http/errors";
 
 // interface GraphData {
 //   nodes: { id: string; label: string; properties?: object }[];
@@ -28,7 +29,7 @@ export default async function cognifyDataset(
 ) {
   const pipelineSettings = getPipelineSettingsFromStorage();
   // const data = await (
-  return instance.fetch("/v1/cognify", {
+  const response = await instance.fetch("/v1/cognify", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -50,8 +51,9 @@ export default async function cognifyDataset(
       ...(options?.llmModel && { llmModel: options.llmModel }),
     }),
     timeoutMs: COGNIFY_TIMEOUT_MS,
-  })
-  .then((response) => response.json());
+  });
+  if (!response.ok) await toHttpError(response);
+  return response.json();
   // .then(() => {
   //   return getDatasetGraph(dataset, instance)
   //     .then((data) => {

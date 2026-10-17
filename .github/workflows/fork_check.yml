@@ -1,0 +1,123 @@
+name: Fork check
+
+on:
+  pull_request:
+    branches:
+      - custom/main
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fork-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fork-policy:
+    name: Fork workflow policy
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Reject upstream-only automation
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden=(
+            .github/workflows/approve_dco.yaml
+            .github/workflows/catalog.yml
+            .github/workflows/clean_stale_pr.yaml
+            .github/workflows/community_greetings.yml
+            .github/workflows/community_tests.yml
+            .github/workflows/cve_alert.yml
+            .github/workflows/dev_canary_release.yml
+            .github/workflows/dev_previous_day_commits.yml
+            .github/workflows/docker_validation_nightly.yml
+            .github/workflows/dockerhub-mcp.yml
+            .github/workflows/dockerhub.yml
+            .github/workflows/dockerhub-ui.yml
+            .github/workflows/docs_issue_triage.yml
+            .github/workflows/helm-ci.yml
+            .github/workflows/label-core-team.yml
+            .github/workflows/latest_libraries.yml
+            .github/workflows/mirror-images.yml
+            .github/workflows/nightly_tests.yml
+            .github/workflows/nightly_scheduler.yml
+            .github/workflows/pr_lint
+            .github/workflows/pr_lint.yml
+            .github/workflows/release.yml
+            .github/workflows/release_discord_action.yml
+            .github/workflows/release_mcp.yml
+            .github/workflows/router_docstring_sync.yml
+            .github/workflows/release_test.yml
+            .github/workflows/require-linear-issue.yml
+            .github/workflows/scorecard.yml
+            .github/workflows/skills_link_check.yml
+            .github/workflows/spec_extras_sync.yml
+            .github/workflows/sync_mintlify_docs.yml
+            .github/workflows/telemetry-insights.yml
+            .github/workflows/test_suites.yml
+            .github/workflows/update-contributors.yml
+            .github/workflows/weekly-ticket-proposals.yml
+          )
+          for path in "${forbidden[@]}"; do
+            if [[ -e "$path" ]]; then
+              echo "::error file=$path::Upstream-only automation must not be present in the custom fork."
+              exit 1
+            fi
+          done
+
+          if grep -R -n -E '^[[:space:]]+schedule:' .github/workflows --include='*.yml' --include='*.yaml'; then
+            echo "::error::Scheduled GitHub Actions are disabled by fork policy."
+            exit 1
+          fi
+
+          if grep -q -E '^[[:space:]]+pull_request:' .github/workflows/test_deployment_mcp.yml; then
+            echo "::error file=.github/workflows/test_deployment_mcp.yml::Deployment MCP test must remain manual-only."
+            exit 1
+          fi
+
+  python-fork-tests:
+    needs: fork-policy
+    name: Python fork tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Cognee
+        uses: ./.github/actions/cognee_setup
+        with:
+          base-extras: "dev"
+      - name: Run fork-specific Python tests
+        run: |
+          uv run pytest -q \
+            cognee/tests/unit/shared/test_data_models.py \
+            cognee/tests/unit/infrastructure/llm/test_fork_language_policy.py
+
+  frontend-fork-tests:
+    needs: fork-policy
+    name: Frontend fork tests
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: cognee-frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: cognee-frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Run fork-specific Jest tests
+        run: |
+          npm test -- --runInBand \
+            src/modules/datasets/__tests__/cognifyDataset.test.ts \
+            src/modules/datasets/__tests__/rebuildDatasetFromScratch.test.ts
+      - name: Build production frontend
+        run: npm run build
